@@ -6,38 +6,13 @@ import CourseCard from "@/components/CourseCard";
 import { useThemeContext } from "../context/themeContext";
 import LottieView from "lottie-react-native";
 import loadingAnimation from "../../assets/animations/loading.json";
-
-type LoggedInUser = {
-  id: number;
-  name: string;
-  role: "student" | "instructor";
-  assignedTeacherId?: number;
-  coursesEnrolled: number[];
-};
-
-type Course = {
-  id: number;
-  title: string;
-  description: string;
-  cost: number;
-  status: string;
-  startDate: string;
-  endDate: string;
-  createdAt: string;
-  image: string;
-  instructor: string;
-  students: number;
-  rating: number;
-  duration: string;
-  videoCount: number;
-  teacherId: number;
-};
+import { Course, LoggedInUser } from "../types";
 
 const CourseListScreen = () => {
   const { isDark } = useThemeContext();
   const [user, setUser] = useState<LoggedInUser | null>(null);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true); // ✅ New state for tracking loading
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadUserAndFilter = async () => {
@@ -69,14 +44,13 @@ const CourseListScreen = () => {
       } catch (err) {
         console.error("Error reading loggedInUser from AsyncStorage", err);
       } finally {
-        setLoading(false); // ✅ Done loading
+        setLoading(false);
       }
     };
 
     loadUserAndFilter();
   }, []);
 
-  // ✅ While still loading user or courses, show loader
   if (loading || user === null) {
     return (
       <View

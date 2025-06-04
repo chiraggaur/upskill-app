@@ -30,6 +30,35 @@ export type Course = {
   teacherId: number;
 };
 
+export const dummySuggestions = [
+  "Adobe Photoshop",
+  "Coding",
+  "Social Media",
+  "Camera",
+  "Motivation",
+  "Web Design",
+  "Programming",
+  "Figma",
+  "Flutter",
+  "Marketing",
+];
+
+export type LoggedInUser = {
+  id: number;
+  name: string;
+  role: "student" | "instructor";
+  assignedTeacherId?: number;
+  coursesEnrolled: number[];
+};
+
+export const categories = [
+  { name: "Design", icon: "color-palette-outline", lib: "Ionicons" },
+  { name: "Personal Development", icon: "user-check", lib: "Feather" },
+  { name: "Development", icon: "code", lib: "Feather" },
+  { name: "Music", icon: "music", lib: "Feather" },
+  { name: "Marketing", icon: "campaign", lib: "MaterialIcons" },
+];
+
 export const mockTeachers: Teacher[] = [
   { id: 1, name: "Mr. John Doe", email: "johndoe@example.com" },
   { id: 2, name: "Ms. Sarah Lee", email: "sarahlee@example.com" },

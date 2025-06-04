@@ -1,4 +1,4 @@
-import { router, Tabs } from "expo-router";
+import { Tabs } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Platform } from "react-native";
 

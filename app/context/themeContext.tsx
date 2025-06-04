@@ -1,4 +1,3 @@
-// app/context/ThemeContext.tsx
 import React, { createContext, useContext, useState, useMemo } from "react";
 import { DarkTheme, DefaultTheme } from "@react-navigation/native";
 

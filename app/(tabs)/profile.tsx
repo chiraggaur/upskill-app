@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { View, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import { View, ScrollView, TouchableOpacity } from "react-native";
 import { useThemeContext } from "../context/themeContext";
 import {
   Avatar,
@@ -14,6 +14,7 @@ import {
 } from "react-native-paper";
 import EditProfileModal from "@/components/EditProfileModal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import styles from "../styles/profileStyles";
 
 export default function ProfileScreen() {
   const { isDark, toggleTheme } = useThemeContext();
@@ -97,8 +98,6 @@ export default function ProfileScreen() {
         initialEmail={email}
         onSave={handleSaveProfile}
       />
-
-      {/* Premium Card */}
       <Card
         mode="outlined"
         style={[styles.premiumCard, backgroundColor]}
@@ -206,56 +205,3 @@ export default function ProfileScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  profileHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 20,
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  premiumCard: {
-    marginBottom: 24,
-
-    borderRadius: 12,
-  },
-  settingsTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 40,
-    paddingBottom: 12,
-    justifyContent: "center",
-    marginBottom: 10,
-  },
-  backButton: {
-    position: "absolute",
-    left: 10,
-    bottom: 10,
-    marginRight: 12,
-  },
-  title: {
-    fontSize: 18,
-    textAlign: "center",
-    fontWeight: "600",
-  },
-  subscription: {
-    fontSize: 14,
-    textAlign: "center",
-    marginTop: 5,
-    fontWeight: "600",
-  },
-});

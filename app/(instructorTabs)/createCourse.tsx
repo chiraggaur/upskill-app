@@ -10,9 +10,10 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useForm, Controller } from "react-hook-form";
-import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useThemeContext } from "../context/themeContext";
+import styles from "../styles/courseEditStyles";
+import schema from "../Miscellaneous/yupSchema";
 
 type CourseStatus = "Draft" | "Published" | "Archived";
 
@@ -24,29 +25,6 @@ interface CourseFormValues {
   endDate: Date;
   image: string;
 }
-
-const schema = yup.object().shape({
-  title: yup
-    .string()
-    .trim()
-    .required("Course title is required")
-    .min(3, "Title must be at least 3 characters"),
-  description: yup
-    .string()
-    .required("Course description is required")
-    .min(10, "Description must be at least 10 characters"),
-  cost: yup
-    .number()
-    .typeError("Cost must be a valid number")
-    .required("Cost is required")
-    .min(0, "Cost must be at least 0"),
-  startDate: yup.date().required("Start date is required"),
-  endDate: yup
-    .date()
-    .required("End date is required")
-    .min(yup.ref("startDate"), "End date must be after start date"),
-  image: yup.string().required("Course image is required"),
-});
 
 const CreateCourseScreen: React.FC = () => {
   const [image, setImage] = useState<string | undefined>(undefined);
@@ -186,7 +164,7 @@ const CreateCourseScreen: React.FC = () => {
         style={[
           styles.dateButton,
           cardBackground,
-          { borderColor: isDark ? "#4B5563" : "#D1D5DB" }, // dark: gray-600, light: gray-300
+          { borderColor: isDark ? "#4B5563" : "#D1D5DB" },
         ]}
         onPress={() => setShowStartPicker(true)}
       >
@@ -209,7 +187,7 @@ const CreateCourseScreen: React.FC = () => {
         style={[
           styles.dateButton,
           cardBackground,
-          { borderColor: isDark ? "#4B5563" : "#D1D5DB" }, // dark: gray-600, light: gray-300
+          { borderColor: isDark ? "#4B5563" : "#D1D5DB" },
         ]}
         onPress={() => setShowEndPicker(true)}
       >
@@ -257,54 +235,6 @@ const CreateCourseScreen: React.FC = () => {
       </TouchableOpacity>
     </ScrollView>
   );
-};
-
-const styles = {
-  label: {
-    fontWeight: "bold" as const,
-    marginBottom: 5,
-    fontSize: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#4b5563",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 15,
-  },
-  textArea: {
-    height: 120,
-    textAlignVertical: "top" as const,
-  },
-  statusButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-  },
-  dateButton: {
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    marginBottom: 12,
-  },
-  imageButton: {
-    backgroundColor: "#694da6",
-    padding: 14,
-    borderRadius: 999,
-    alignItems: "center" as const,
-    marginBottom: 15,
-  },
-  imageButtonText: {
-    color: "white",
-    fontWeight: "600" as const,
-  },
-  saveButton: {
-    backgroundColor: "#10b981",
-    padding: 16,
-    borderRadius: 999,
-    alignItems: "center" as const,
-    marginTop: 10,
-  },
 };
 
 export default CreateCourseScreen;
