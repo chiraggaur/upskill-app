@@ -1,56 +1,83 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View, Text } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import CourseCard from "@/components/CourseCard";
 import { useThemeContext } from "../context/themeContext";
-import { Courses } from "../mockData"; // <-- your array of 15 courses
+import LottieView from "lottie-react-native";
+import loadingAnimation from "../../assets/animations/loading.json";
 
 type LoggedInUser = {
   id: number;
   name: string;
   role: "student" | "instructor";
   assignedTeacherId?: number;
+  coursesEnrolled: number[];
+};
+
+type Course = {
+  id: number;
+  title: string;
+  description: string;
+  cost: number;
+  status: string;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  image: string;
+  instructor: string;
+  students: number;
+  rating: number;
+  duration: string;
+  videoCount: number;
+  teacherId: number;
 };
 
 const CourseListScreen = () => {
   const { isDark } = useThemeContext();
   const [user, setUser] = useState<LoggedInUser | null>(null);
-  const [filteredCourses, setFilteredCourses] = useState<typeof Courses>([]);
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true); // ✅ New state for tracking loading
 
   useEffect(() => {
     const loadUserAndFilter = async () => {
       try {
         const json = await AsyncStorage.getItem("loggedInUser");
-        if (!json) {
-          // no user logged in— you can redirect or just leave empty
-          return;
-        }
+        if (!json) return;
+
         const parsed: LoggedInUser = JSON.parse(json);
         setUser(parsed);
 
+        const response = await axios.get<Course[]>(
+          "https://f485c52e-af5f-460e-b2c8-c6a9589aad03.mock.pstmn.io//courses"
+        );
+
+        const courses = response.data;
+
         if (parsed.role === "student" && parsed.assignedTeacherId != null) {
-          // Show only courses whose teacherId matches assignedTeacherId
-          const studentCourses = Courses.filter(
-            (course) => course.teacherId === parsed.assignedTeacherId
+          const studentCourses = courses.filter(
+            (course) =>
+              Number(course.teacherId) === Number(parsed.assignedTeacherId)
           );
           setFilteredCourses(studentCourses);
         } else if (parsed.role === "instructor") {
-          // Show only courses created by this instructor (teacherId === instructor.id)
-          const instructorCourses = Courses.filter(
+          const instructorCourses = courses.filter(
             (course) => course.teacherId === parsed.id
           );
           setFilteredCourses(instructorCourses);
         }
       } catch (err) {
         console.error("Error reading loggedInUser from AsyncStorage", err);
+      } finally {
+        setLoading(false); // ✅ Done loading
       }
     };
 
     loadUserAndFilter();
   }, []);
 
-  // While AsyncStorage is loading (user === null), show a simple loader
-  if (user === null) {
+  // ✅ While still loading user or courses, show loader
+  if (loading || user === null) {
     return (
       <View
         style={[
@@ -58,9 +85,18 @@ const CourseListScreen = () => {
           { backgroundColor: isDark ? "#000" : "#fff" },
         ]}
       >
-        <Text style={{ color: isDark ? "#fff" : "#000", fontSize: 18 }}>
-          Loading...
-        </Text>
+        <LottieView
+          source={loadingAnimation}
+          autoPlay
+          loop
+          style={{ width: 150, height: 250 }}
+          colorFilters={[
+            {
+              keypath: "Shape Layer 1",
+              color: isDark ? "#fff" : "#4f46e5",
+            },
+          ]}
+        />
       </View>
     );
   }

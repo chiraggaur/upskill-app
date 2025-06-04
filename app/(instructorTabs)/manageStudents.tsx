@@ -2,282 +2,281 @@
 // import {
 //   View,
 //   Text,
-//   FlatList,
 //   TouchableOpacity,
 //   StyleSheet,
-//   Platform,
-//   UIManager,
+//   FlatList,
 // } from "react-native";
 // import { AnimatePresence, MotiView } from "moti";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { Course, Courses, mockStudents } from "../mockData";
 // import { LinearGradient } from "expo-linear-gradient";
+// import { useThemeContext } from "../context/themeContext";
+// import { mockStudents, Courses } from "../mockData";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
 // import Toast from "react-native-toast-message";
-// import useThemeContext from "../context/themeContext";
 
-// if (
-//   Platform.OS === "android" &&
-//   UIManager.setLayoutAnimationEnabledExperimental
-// ) {
-//   UIManager.setLayoutAnimationEnabledExperimental(true);
-// }
-
-// const ManageStudentsScreen: React.FC = () => {
-//   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-//   const [showDropdown, setShowDropdown] = useState(false);
-//   const [enrollments, setEnrollments] = useState<Record<number, number[]>>({});
+// const ManageStudentsScreen = () => {
 //   const [loggedInUser, setLoggedInUser] = useState<number | null>(null);
+//   const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
+//   const [dropdownOpen, setDropdownOpen] = useState(false);
+//   const [students, setStudents] = useState(mockStudents);
 //   const { isDark } = useThemeContext();
-
-//   const textColor = { color: isDark ? "#fff" : "#000" };
-//   const backgroundColor = { backgroundColor: isDark ? "#000" : "#fff" };
-//   const cardBackground = { backgroundColor: isDark ? "#1f2937" : "#fff" };
 
 //   useEffect(() => {
 //     const loadUser = async () => {
-//       try {
-//         const storedUser = await AsyncStorage.getItem("loggedInUser");
-//         if (storedUser) {
-//           const parsedUser = JSON.parse(storedUser);
-//           setLoggedInUser(parsedUser.id);
-//         }
-//       } catch (error) {
-//         console.error("Failed to load user data", error);
+//       const storedUser = await AsyncStorage.getItem("loggedInUser");
+//       if (storedUser) {
+//         setLoggedInUser(JSON.parse(storedUser).id);
 //       }
 //     };
 //     loadUser();
 //   }, []);
 
-//   const publishedCourses = Courses.filter(
-//     (course) =>
-//       course.teacherId === loggedInUser && course.status === "Published"
+//   if (loggedInUser === null) return null;
+
+//   const teacherCourses = Courses.filter(
+//     (c) => c.teacherId === loggedInUser && c.status === "Published"
 //   );
 
+//   const teacherStudents = students.filter(
+//     (s) => s.assignedTeacherId === loggedInUser
+//   );
+
+//   const enrolledStudents = selectedCourse
+//     ? teacherStudents.filter((s) =>
+//         s.coursesEnrolled.includes(selectedCourse.id)
+//       )
+//     : [];
+
+//   const availableStudents = selectedCourse
+//     ? teacherStudents.filter(
+//         (s) => !s.coursesEnrolled.includes(selectedCourse.id)
+//       )
+//     : [];
+
 //   const toggleEnroll = (studentId: number) => {
-//     if (!selectedCourse) return;
+//     const updated = students.map((student) => {
+//       if (student.id !== studentId) return student;
+//       const isEnrolled = student.coursesEnrolled.includes(selectedCourse.id);
+//       const updatedCourses = isEnrolled
+//         ? student.coursesEnrolled.filter((id) => id !== selectedCourse.id)
+//         : [...student.coursesEnrolled, selectedCourse.id];
+//       return { ...student, coursesEnrolled: updatedCourses };
+//     });
+//     setStudents(updated);
 
-//     const current = enrollments[selectedCourse.id] || [];
-//     const isCurrentlyEnrolled = current.includes(studentId);
+//     const student = students.find((s) => s.id === studentId);
 
-//     const updated = isCurrentlyEnrolled
-//       ? current.filter((id) => id !== studentId)
-//       : [...current, studentId];
-
-//     setEnrollments((prev) => ({ ...prev, [selectedCourse.id]: updated }));
-
-//     // ✅ Show toast message
 //     Toast.show({
-//       type: isCurrentlyEnrolled ? "error" : "success",
-//       text1: isCurrentlyEnrolled ? "Student Unenrolled" : "Student Enrolled",
-//       text2: `Successfully ${isCurrentlyEnrolled ? "removed" : "added"} ${
-//         mockStudents.find((s) => s.id === studentId)?.name
-//       }`,
+//       type: "success",
 //       position: "bottom",
+//       text1: `Student ${student?.name} has been ${
+//         students
+//           .find((s) => s.id === studentId)
+//           ?.coursesEnrolled.includes(selectedCourse.id)
+//           ? "unenrolled from"
+//           : "enrolled in"
+//       } ${selectedCourse.title}`,
 //     });
 //   };
 
 //   return (
 //     <LinearGradient
-//       colors={["#E0EAFC", "#b6a6d4"]}
-//       style={styles.gradientBackground}
+//       colors={
+//         isDark
+//           ? ["#111827", "#1f2937"]
+//           : [
+//               "rgba(0, 10, 20, 0.95)", // deep midnight blue
+//               "rgba(58, 12, 163, 0.9)", // neon violet
+//               "rgba(0, 255, 255, 0.4)", // bright cyan glow
+//             ]
+//       }
+//       style={styles.gradient}
 //     >
-//       <View style={styles.container}>
-//         <Text style={styles.header}>🎓 Manage Students</Text>
-
-//         <View style={styles.dropdownWrapper}>
-//           <TouchableOpacity
-//             onPress={() => setShowDropdown(!showDropdown)}
-//             style={styles.dropdownToggle}
-//           >
-//             <Text style={styles.dropdownText}>
-//               {selectedCourse ? selectedCourse.title : "Select a Course"}
-//             </Text>
-//           </TouchableOpacity>
-
-//           <AnimatePresence>
-//             {showDropdown && (
-//               <MotiView
-//                 from={{ opacity: 0, translateY: -10 }}
-//                 animate={{ opacity: 1, translateY: 0 }}
-//                 exit={{ opacity: 0, translateY: -10 }}
-//                 style={styles.dropdownContainer}
-//               >
-//                 {publishedCourses.map((course) => (
-//                   <TouchableOpacity
-//                     key={course.id}
-//                     onPress={() => {
-//                       setSelectedCourse(course);
-//                       setShowDropdown(false);
-//                     }}
-//                     style={styles.dropdownItem}
-//                   >
-//                     <Text style={styles.courseTitle}>{course.title}</Text>
-//                     <Text style={styles.courseStatus}>{course.status}</Text>
-//                   </TouchableOpacity>
-//                 ))}
-//               </MotiView>
-//             )}
-//           </AnimatePresence>
-//         </View>
-
-//         <AnimatePresence>
-//           {selectedCourse && (
-//             <MotiView
-//               key="student-list"
-//               from={{ opacity: 0, translateY: 10 }}
-//               animate={{ opacity: 1, translateY: 0 }}
-//               transition={{ type: "timing", duration: 300 }}
-//               style={styles.studentListContainer}
+//       <FlatList
+//         ListHeaderComponent={
+//           <View style={styles.container}>
+//             <Text
+//               style={[styles.header, { color: isDark ? "#fff" : "#1E3A8A" }]}
 //             >
-//               <Text style={styles.subHeader}>
-//                 Students in: {selectedCourse.title}
-//               </Text>
+//               🎓 Select a Course
+//             </Text>
 
-//               <FlatList
-//                 data={mockStudents}
-//                 contentContainerStyle={{ paddingBottom: 180 }}
-//                 keyExtractor={(item) => item.id.toString()}
-//                 renderItem={({ item }) => {
-//                   const isEnrolled = enrollments[selectedCourse.id]?.includes(
-//                     item.id
-//                   );
-//                   return (
-//                     <View style={styles.studentRow}>
-//                       <View>
-//                         <Text style={styles.studentName}>{item.name}</Text>
-//                         <Text style={styles.studentEmail}>{item.email}</Text>
-//                       </View>
-//                       <TouchableOpacity
-//                         onPress={() => toggleEnroll(item.id)}
-//                         style={[
-//                           styles.enrollButton,
-//                           isEnrolled ? styles.unenroll : styles.enroll,
-//                         ]}
-//                       >
-//                         <Text style={styles.enrollText}>
-//                           {isEnrolled ? "Unenroll" : "Enroll"}
-//                         </Text>
-//                       </TouchableOpacity>
-//                     </View>
-//                   );
-//                 }}
-//               />
-//             </MotiView>
-//           )}
-//         </AnimatePresence>
-//       </View>
+//             <TouchableOpacity
+//               onPress={() => setDropdownOpen(!dropdownOpen)}
+//               style={[
+//                 styles.dropdownToggle,
+//                 {
+//                   backgroundColor: isDark ? "#1f2937" : "#fff",
+//                   borderColor: isDark ? "#374151" : "#ccc",
+//                 },
+//               ]}
+//             >
+//               <Text style={{ color: isDark ? "#fff" : "#000" }}>
+//                 {selectedCourse ? selectedCourse.title : "Select Course"}
+//               </Text>
+//             </TouchableOpacity>
+
+//             {dropdownOpen &&
+//               teacherCourses.map((course) => (
+//                 <TouchableOpacity
+//                   key={course.id}
+//                   onPress={() => {
+//                     setSelectedCourse(course);
+//                     setDropdownOpen(false);
+//                   }}
+//                   style={[
+//                     styles.dropdownItem,
+//                     {
+//                       backgroundColor: isDark ? "#374151" : "#f1f5f9",
+//                     },
+//                   ]}
+//                 >
+//                   <Text style={{ color: isDark ? "#fff" : "#111" }}>
+//                     {course.title}
+//                   </Text>
+//                 </TouchableOpacity>
+//               ))}
+
+//             {selectedCourse && (
+//               <AnimatePresence>
+//                 <MotiView
+//                   key="student-list"
+//                   from={{ opacity: 0, translateY: 10 }}
+//                   animate={{ opacity: 1, translateY: 0 }}
+//                   transition={{ type: "timing", duration: 300 }}
+//                   style={styles.studentListContainer}
+//                 >
+//                   <Text
+//                     style={[
+//                       styles.subHeader,
+//                       { color: isDark ? "#60a5fa" : "#1E40AF" },
+//                     ]}
+//                   >
+//                     Enrolled Students
+//                   </Text>
+
+//                   {enrolledStudents.map((item) => (
+//                     <StudentRow
+//                       key={item.id}
+//                       student={item}
+//                       isEnrolled
+//                       isDark={isDark}
+//                       onPress={() => toggleEnroll(item.id)}
+//                     />
+//                   ))}
+
+//                   <Text
+//                     style={[
+//                       styles.subHeader,
+//                       {
+//                         color: isDark ? "#6ee7b7" : "#047857",
+//                         marginTop: 24,
+//                       },
+//                     ]}
+//                   >
+//                     Available to Enroll
+//                   </Text>
+
+//                   {availableStudents.map((item) => (
+//                     <StudentRow
+//                       key={item.id}
+//                       student={item}
+//                       isEnrolled={false}
+//                       isDark={isDark}
+//                       onPress={() => toggleEnroll(item.id)}
+//                     />
+//                   ))}
+//                 </MotiView>
+//               </AnimatePresence>
+//             )}
+//           </View>
+//         }
+//         data={[]}
+//         renderItem={null}
+//       />
 //     </LinearGradient>
 //   );
 // };
 
+// const StudentRow = ({
+//   student,
+//   isEnrolled,
+//   isDark,
+//   onPress,
+// }: {
+//   student: any;
+//   isEnrolled: boolean;
+//   isDark: boolean;
+//   onPress: () => void;
+// }) => (
+//   <View
+//     style={[
+//       styles.studentRow,
+//       {
+//         backgroundColor: isDark ? "#1f2937" : "#fff",
+//         shadowColor: isDark ? "#00000033" : "#000",
+//       },
+//     ]}
+//   >
+//     <View>
+//       <Text style={{ color: isDark ? "#f9fafb" : "#111827", fontSize: 16 }}>
+//         {student.name}
+//       </Text>
+//       <Text style={{ color: isDark ? "#9CA3AF" : "#6B7280" }}>
+//         {student.email}
+//       </Text>
+//     </View>
+//     <TouchableOpacity
+//       onPress={onPress}
+//       style={[
+//         styles.enrollButton,
+//         { backgroundColor: isEnrolled ? "#ef4444" : "#10b981" },
+//       ]}
+//     >
+//       <Text style={{ color: "#fff", fontWeight: "bold" }}>
+//         {isEnrolled ? "Unenroll" : "Enroll"}
+//       </Text>
+//     </TouchableOpacity>
+//   </View>
+// );
+
 // const styles = StyleSheet.create({
-//   gradientBackground: {
-//     flex: 1,
-//   },
-//   container: {
-//     paddingHorizontal: 20,
-//     paddingTop: 60,
-//     flex: 1,
-//   },
-//   header: {
-//     fontSize: 26,
-//     fontWeight: "800",
-//     color: "#1E3A8A",
-//     marginBottom: 20,
-//     textAlign: "center",
-//   },
-//   dropdownWrapper: {
-//     zIndex: 10,
-//     marginBottom: 10,
-//   },
+//   gradient: { flex: 1 },
+//   container: { padding: 16, paddingBottom: 120 },
+//   header: { fontSize: 22, fontWeight: "bold", marginBottom: 16 },
 //   dropdownToggle: {
-//     padding: 14,
-//     backgroundColor: "#FFFFFF",
-//     borderRadius: 12,
-//     elevation: 3,
-//     shadowColor: "#000",
-//     shadowOpacity: 0.1,
-//     shadowOffset: { width: 0, height: 2 },
-//     borderColor: "#3B82F6",
 //     borderWidth: 1,
-//   },
-//   dropdownText: {
-//     fontSize: 16,
-//     fontWeight: "600",
-//     color: "#1D4ED8",
-//   },
-//   dropdownContainer: {
-//     position: "absolute",
-//     top: 60,
-//     width: "100%",
-//     backgroundColor: "#FFF",
-//     borderRadius: 12,
-//     padding: 10,
-//     elevation: 5,
-//     shadowColor: "#000",
-//     shadowOpacity: 0.1,
-//     shadowRadius: 4,
+//     borderRadius: 8,
+//     padding: 12,
+//     marginBottom: 10,
 //   },
 //   dropdownItem: {
-//     paddingVertical: 10,
-//     borderBottomColor: "#E5E7EB",
-//     borderBottomWidth: 1,
-//   },
-//   courseTitle: {
-//     fontSize: 16,
-//     fontWeight: "600",
-//     color: "#1E40AF",
-//   },
-//   courseStatus: {
-//     fontSize: 12,
-//     color: "#64748B",
-//   },
-//   subHeader: {
-//     fontSize: 18,
-//     color: "#1E40AF",
-//     marginBottom: 10,
-//     fontWeight: "600",
+//     padding: 12,
+//     borderRadius: 6,
+//     marginVertical: 4,
 //   },
 //   studentListContainer: {
-//     marginTop: 10,
-//     flex: 1,
+//     marginTop: 16,
+//   },
+//   subHeader: {
+//     fontSize: 16,
+//     fontWeight: "600",
+//     marginBottom: 8,
 //   },
 //   studentRow: {
-//     backgroundColor: "#FFFFFF",
-//     borderRadius: 14,
-//     padding: 16,
-//     marginBottom: 12,
+//     padding: 12,
+//     borderRadius: 8,
 //     flexDirection: "row",
 //     justifyContent: "space-between",
 //     alignItems: "center",
-//     shadowColor: "#000",
-//     shadowOpacity: 0.05,
-//     shadowRadius: 4,
+//     marginBottom: 8,
+//     shadowOpacity: 0.2,
+//     shadowOffset: { width: 0, height: 1 },
 //     elevation: 2,
-//   },
-//   studentName: {
-//     fontSize: 16,
-//     fontWeight: "700",
-//     color: "#111827",
-//   },
-//   studentEmail: {
-//     fontSize: 13,
-//     color: "#6B7280",
 //   },
 //   enrollButton: {
 //     paddingVertical: 6,
 //     paddingHorizontal: 14,
-//     borderRadius: 8,
-//   },
-//   enroll: {
-//     backgroundColor: "#4ADE80",
-//   },
-//   unenroll: {
-//     backgroundColor: "#F87171",
-//   },
-//   enrollText: {
-//     color: "#fff",
-//     fontWeight: "600",
+//     borderRadius: 6,
 //   },
 // });
 
@@ -289,313 +288,327 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  FlatList,
   TouchableOpacity,
   StyleSheet,
+  FlatList,
+  Platform,
 } from "react-native";
 import { AnimatePresence, MotiView } from "moti";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Course, Courses, mockStudents } from "../mockData";
 import { LinearGradient } from "expo-linear-gradient";
+import { useThemeContext } from "../context/themeContext";
+import { mockStudents, Courses } from "../mockData";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
-import useThemeContext from "../context/themeContext";
 
-const ManageStudentsScreen: React.FC = () => {
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [enrollments, setEnrollments] = useState<Record<number, number[]>>({});
+const ManageStudentsScreen = () => {
   const [loggedInUser, setLoggedInUser] = useState<number | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [students, setStudents] = useState(mockStudents);
   const { isDark } = useThemeContext();
 
   useEffect(() => {
     const loadUser = async () => {
-      try {
-        const storedUser = await AsyncStorage.getItem("loggedInUser");
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          setLoggedInUser(parsedUser.id);
-        }
-      } catch (error) {
-        console.error("Failed to load user data", error);
+      const storedUser = await AsyncStorage.getItem("loggedInUser");
+      if (storedUser) {
+        setLoggedInUser(JSON.parse(storedUser).id);
       }
     };
     loadUser();
   }, []);
 
-  const publishedCourses = Courses.filter(
-    (course) =>
-      course.teacherId === loggedInUser && course.status === "Published"
+  if (loggedInUser === null) return null;
+
+  const teacherCourses = Courses.filter(
+    (c) => c.teacherId === loggedInUser && c.status === "Published"
   );
 
+  const teacherStudents = students.filter(
+    (s) => s.assignedTeacherId === loggedInUser
+  );
+
+  const enrolledStudents = selectedCourse
+    ? teacherStudents.filter((s) =>
+        s.coursesEnrolled.includes(selectedCourse.id)
+      )
+    : [];
+
+  const availableStudents = selectedCourse
+    ? teacherStudents.filter(
+        (s) => !s.coursesEnrolled.includes(selectedCourse.id)
+      )
+    : [];
+
   const toggleEnroll = (studentId: number) => {
-    if (!selectedCourse) return;
+    const updated = students.map((student) => {
+      if (student.id !== studentId) return student;
+      const isEnrolled = student.coursesEnrolled.includes(selectedCourse.id);
+      const updatedCourses = isEnrolled
+        ? student.coursesEnrolled.filter((id) => id !== selectedCourse.id)
+        : [...student.coursesEnrolled, selectedCourse.id];
+      return { ...student, coursesEnrolled: updatedCourses };
+    });
+    setStudents(updated);
 
-    const current = enrollments[selectedCourse.id] || [];
-    const isCurrentlyEnrolled = current.includes(studentId);
-
-    const updated = isCurrentlyEnrolled
-      ? current.filter((id) => id !== studentId)
-      : [...current, studentId];
-
-    setEnrollments((prev) => ({ ...prev, [selectedCourse.id]: updated }));
+    const student = students.find((s) => s.id === studentId);
 
     Toast.show({
-      type: isCurrentlyEnrolled ? "error" : "success",
-      text1: isCurrentlyEnrolled ? "Student Unenrolled" : "Student Enrolled",
-      text2: `Successfully ${isCurrentlyEnrolled ? "removed" : "added"} ${
-        mockStudents.find((s) => s.id === studentId)?.name
-      }`,
+      type: "success",
       position: "bottom",
+      text1: `Student ${student?.name} has been ${
+        students
+          .find((s) => s.id === studentId)
+          ?.coursesEnrolled.includes(selectedCourse.id)
+          ? "unenrolled from"
+          : "enrolled in"
+      } ${selectedCourse.title}`,
     });
   };
 
   return (
     <LinearGradient
-      colors={isDark ? ["#111827", "#1f2937"] : ["#E0EAFC", "#b6a6d4"]}
-      style={styles.gradientBackground}
+      colors={isDark ? ["#111827", "#1f2937"] : ["#f8fafc", "#e0e7ff"]}
+      style={styles.gradient}
     >
-      <View style={[styles.container]}>
-        <Text style={[styles.header, { color: isDark ? "#fff" : "#1E3A8A" }]}>
-          🎓 Manage Students
-        </Text>
-
-        <View style={styles.dropdownWrapper}>
-          <TouchableOpacity
-            onPress={() => setShowDropdown(!showDropdown)}
-            style={[
-              styles.dropdownToggle,
-              {
-                backgroundColor: isDark ? "#1f2937" : "#fff",
-                borderColor: isDark ? "#6b7280" : "#3B82F6",
-              },
-            ]}
-          >
+      <FlatList
+        ListHeaderComponent={
+          <View style={styles.container}>
             <Text
-              style={[
-                styles.dropdownText,
-                { color: isDark ? "#fff" : "#1D4ED8" },
-              ]}
+              style={[styles.header, { color: isDark ? "#f3f4f6" : "#1e3a8a" }]}
             >
-              {selectedCourse ? selectedCourse.title : "Select a Course"}
+              Manage Students
             </Text>
-          </TouchableOpacity>
 
-          <AnimatePresence>
-            {showDropdown && (
-              <MotiView
-                from={{ opacity: 0, translateY: -10 }}
-                animate={{ opacity: 1, translateY: 0 }}
-                exit={{ opacity: 0, translateY: -10 }}
-                style={[
-                  styles.dropdownContainer,
-                  {
-                    backgroundColor: isDark ? "#374151" : "#fff",
-                  },
-                ]}
-              >
-                {publishedCourses.map((course) => (
-                  <TouchableOpacity
-                    key={course.id}
-                    onPress={() => {
-                      setSelectedCourse(course);
-                      setShowDropdown(false);
-                    }}
-                    style={styles.dropdownItem}
-                  >
-                    <Text
-                      style={[
-                        styles.courseTitle,
-                        { color: isDark ? "#93c5fd" : "#1E40AF" },
-                      ]}
-                    >
-                      {course.title}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.courseStatus,
-                        { color: isDark ? "#9CA3AF" : "#64748B" },
-                      ]}
-                    >
-                      {course.status}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </MotiView>
-            )}
-          </AnimatePresence>
-        </View>
-
-        <AnimatePresence>
-          {selectedCourse && (
-            <MotiView
-              key="student-list"
-              from={{ opacity: 0, translateY: 10 }}
-              animate={{ opacity: 1, translateY: 0 }}
-              transition={{ type: "timing", duration: 300 }}
-              style={styles.studentListContainer}
+            <TouchableOpacity
+              onPress={() => setDropdownOpen(!dropdownOpen)}
+              style={[
+                styles.dropdownToggle,
+                {
+                  backgroundColor: isDark ? "#1f2937" : "#fff",
+                  borderColor: isDark ? "#374151" : "#cbd5e1",
+                  shadowColor: isDark ? "#000" : "#94a3b8",
+                  shadowOpacity: isDark ? 0.9 : 0.15,
+                  shadowRadius: 6,
+                  elevation: 4,
+                },
+              ]}
+              activeOpacity={0.8}
             >
               <Text
-                style={[
-                  styles.subHeader,
-                  { color: isDark ? "#60a5fa" : "#1E40AF" },
-                ]}
-              >
-                Students in: {selectedCourse.title}
-              </Text>
-
-              <FlatList
-                data={mockStudents}
-                contentContainerStyle={{ paddingBottom: 180 }}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => {
-                  const isEnrolled = enrollments[selectedCourse.id]?.includes(
-                    item.id
-                  );
-                  return (
-                    <View
-                      style={[
-                        styles.studentRow,
-                        {
-                          backgroundColor: isDark ? "#1f2937" : "#fff",
-                          shadowColor: isDark ? "#00000055" : "#000",
-                        },
-                      ]}
-                    >
-                      <View>
-                        <Text
-                          style={[
-                            styles.studentName,
-                            { color: isDark ? "#f9fafb" : "#111827" },
-                          ]}
-                        >
-                          {item.name}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.studentEmail,
-                            { color: isDark ? "#9CA3AF" : "#6B7280" },
-                          ]}
-                        >
-                          {item.email}
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => toggleEnroll(item.id)}
-                        style={[
-                          styles.enrollButton,
-                          isEnrolled ? styles.unenroll : styles.enroll,
-                        ]}
-                      >
-                        <Text style={styles.enrollText}>
-                          {isEnrolled ? "Unenroll" : "Enroll"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  );
+                style={{
+                  color: isDark ? "#fff" : "#334155",
+                  fontWeight: "600",
                 }}
-              />
-            </MotiView>
-          )}
-        </AnimatePresence>
-      </View>
+              >
+                {selectedCourse ? selectedCourse.title : "Select Course"}
+              </Text>
+            </TouchableOpacity>
+
+            {dropdownOpen &&
+              teacherCourses.map((course) => (
+                <TouchableOpacity
+                  key={course.id}
+                  onPress={() => {
+                    setSelectedCourse(course);
+                    setDropdownOpen(false);
+                  }}
+                  style={[
+                    styles.dropdownItem,
+                    {
+                      backgroundColor: isDark ? "#374151" : "#f1f5f9",
+                    },
+                  ]}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ color: isDark ? "#e0e0e0" : "#1e293b" }}>
+                    {course.title}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+
+            {selectedCourse && (
+              <AnimatePresence>
+                <MotiView
+                  key="student-list"
+                  from={{ opacity: 0, translateY: 10 }}
+                  animate={{ opacity: 1, translateY: 0 }}
+                  transition={{ type: "timing", duration: 300 }}
+                  style={styles.studentListContainer}
+                >
+                  <Text
+                    style={[
+                      styles.subHeader,
+                      { color: isDark ? "#60a5fa" : "#1e40af" },
+                    ]}
+                  >
+                    Enrolled Students
+                  </Text>
+
+                  {enrolledStudents.length === 0 && (
+                    <Text
+                      style={{
+                        color: isDark ? "#9ca3af" : "#64748b",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      No students enrolled in this course yet.
+                    </Text>
+                  )}
+
+                  {enrolledStudents.map((item) => (
+                    <StudentRow
+                      key={item.id}
+                      student={item}
+                      isEnrolled
+                      isDark={isDark}
+                      onPress={() => toggleEnroll(item.id)}
+                    />
+                  ))}
+
+                  <Text
+                    style={[
+                      styles.subHeader,
+                      {
+                        color: isDark ? "#6ee7b7" : "#047857",
+                        marginTop: 24,
+                      },
+                    ]}
+                  >
+                    Available to Enroll
+                  </Text>
+
+                  {availableStudents.length === 0 && (
+                    <Text
+                      style={{
+                        color: isDark ? "#9ca3af" : "#64748b",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      All students are enrolled in this course.
+                    </Text>
+                  )}
+
+                  {availableStudents.map((item) => (
+                    <StudentRow
+                      key={item.id}
+                      student={item}
+                      isEnrolled={false}
+                      isDark={isDark}
+                      onPress={() => toggleEnroll(item.id)}
+                    />
+                  ))}
+                </MotiView>
+              </AnimatePresence>
+            )}
+          </View>
+        }
+        data={[]}
+        renderItem={null}
+      />
     </LinearGradient>
   );
 };
 
+const StudentRow = ({
+  student,
+  isEnrolled,
+  isDark,
+  onPress,
+}: {
+  student: any;
+  isEnrolled: boolean;
+  isDark: boolean;
+  onPress: () => void;
+}) => (
+  <View
+    style={[
+      styles.studentRow,
+      {
+        backgroundColor: isDark ? "#1f2937" : "#fff",
+        shadowColor: isDark ? "#00000033" : "#0000001a",
+      },
+    ]}
+  >
+    <View>
+      <Text
+        style={{
+          color: isDark ? "#f9fafb" : "#111827",
+          fontSize: 16,
+          fontWeight: "600",
+        }}
+      >
+        {student.name}
+      </Text>
+      <Text style={{ color: isDark ? "#9ca3af" : "#64748b", marginTop: 2 }}>
+        {student.email}
+      </Text>
+    </View>
+    <TouchableOpacity
+      onPress={onPress}
+      style={[
+        styles.enrollButton,
+        { backgroundColor: isEnrolled ? "#ef4444" : "#10b981" },
+      ]}
+      activeOpacity={0.8}
+    >
+      <Text style={{ color: "#fff", fontWeight: "700" }}>
+        {isEnrolled ? "Unenroll" : "Enroll"}
+      </Text>
+    </TouchableOpacity>
+  </View>
+);
+
 const styles = StyleSheet.create({
-  gradientBackground: {
-    flex: 1,
-  },
+  gradient: { flex: 1 },
   container: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    flex: 1,
+    padding: 20,
+    paddingBottom: 120,
   },
   header: {
-    fontSize: 26,
-    fontWeight: "800",
-    marginBottom: 20,
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 28,
     textAlign: "center",
   },
-  dropdownWrapper: {
-    zIndex: 10,
+  dropdownToggle: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: Platform.OS === "ios" ? 14 : 12,
+    paddingHorizontal: 18,
     marginBottom: 10,
   },
-  dropdownToggle: {
-    padding: 14,
-    borderRadius: 12,
-    elevation: 3,
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    borderWidth: 1,
-  },
-  dropdownText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  dropdownContainer: {
-    position: "absolute",
-    top: 60,
-    width: "100%",
-    borderRadius: 12,
-    padding: 10,
-    elevation: 5,
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
   dropdownItem: {
-    paddingVertical: 10,
-    borderBottomColor: "#E5E7EB",
-    borderBottomWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginVertical: 6,
+    borderWidth: 1,
+    borderColor: "transparent",
   },
-  courseTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  courseStatus: {
-    fontSize: 12,
+  studentListContainer: {
+    marginTop: 20,
   },
   subHeader: {
     fontSize: 18,
-    marginBottom: 10,
-    fontWeight: "600",
-  },
-  studentListContainer: {
-    marginTop: 10,
-    flex: 1,
+    fontWeight: "700",
+    marginBottom: 12,
   },
   studentRow: {
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 12,
+    padding: 14,
+    borderRadius: 12,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  studentName: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  studentEmail: {
-    fontSize: 13,
+    marginBottom: 10,
+    shadowOpacity: 0.12,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 6,
+    elevation: 3,
   },
   enrollButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
     borderRadius: 8,
-  },
-  enroll: {
-    backgroundColor: "#4ADE80",
-  },
-  unenroll: {
-    backgroundColor: "#F87171",
-  },
-  enrollText: {
-    color: "#fff",
-    fontWeight: "600",
   },
 });
 

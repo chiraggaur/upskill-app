@@ -11,9 +11,11 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import { mockStudents, mockTeachers } from "./mockData";
 import { MotiView } from "moti";
 import { LinearGradient } from "expo-linear-gradient";
+import LottieView from "lottie-react-native";
+import axios from "axios";
+import loadingAnimation from "../assets/animations/loading.json";
 
 const { width, height } = Dimensions.get("window");
 
@@ -21,29 +23,55 @@ export default function LandingScreen() {
   const [role, setRole] = useState<"student" | "instructor" | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [students, setStudents] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fetchData = async () => {
+      try {
+        const [studentsRes, teachersRes] = await Promise.all([
+          axios.get(
+            "https://f485c52e-af5f-460e-b2c8-c6a9589aad03.mock.pstmn.io//Students"
+          ),
+          axios.get(
+            "https://f485c52e-af5f-460e-b2c8-c6a9589aad03.mock.pstmn.io//allTeachers"
+          ),
+        ]);
+
+        setStudents(studentsRes.data);
+        setTeachers(teachersRes.data);
+      } catch (err) {
+        console.error("API fetch failed", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Check if already logged in
+  useEffect(() => {
     const checkUser = async () => {
       const user = await AsyncStorage.getItem("loggedInUser");
-      if (role === "student") {
-        if (user) {
-          const parsedUser = JSON.parse(user);
-          if (parsedUser.role === "student") {
-            router.replace("/(tabs)");
-          } else {
-            router.replace("/(instructorTabs)");
-          }
+      if (user) {
+        const parsedUser = JSON.parse(user);
+        if (parsedUser.role === "student") {
+          router.replace("/(tabs)");
+        } else {
+          router.replace("/(instructorTabs)");
         }
       }
-      checkUser();
     };
+
+    checkUser();
   }, []);
 
   const handleUserSelect = async (user: any) => {
     const fullUser = { ...user, role };
+    setSelectedUser(user);
     await AsyncStorage.setItem("loggedInUser", JSON.stringify(fullUser));
-
     // eslint-disable-next-line no-unused-expressions
     role === "student"
       ? router.replace("/(tabs)")
@@ -53,7 +81,7 @@ export default function LandingScreen() {
   const renderUserItem = ({ item }: { item: any }) => {
     const teacherName =
       role === "student"
-        ? mockTeachers.find((t) => t.id === item.assignedTeacherId)?.name
+        ? teachers.find((t) => t.id === item.assignedTeacherId)?.name
         : null;
 
     return (
@@ -62,7 +90,7 @@ export default function LandingScreen() {
         onPress={() => handleUserSelect(item)}
       >
         <Text style={styles.userText}>
-          {item.name}
+          {item?.name ?? "Unnamed"}
           {teacherName ? ` (Teacher: ${teacherName})` : ""}
         </Text>
       </TouchableOpacity>
@@ -72,16 +100,16 @@ export default function LandingScreen() {
   return (
     <ImageBackground
       source={{
-        uri: "https://images.unsplash.com/photo-1600195077075-d99c0cddf2e6?auto=format&fit=crop&w=1400&q=80",
+        uri: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80",
       }}
       style={styles.background}
       resizeMode="cover"
     >
       <LinearGradient
         colors={[
-          "rgba(10, 10, 25, 0.9)",
-          "rgba(20, 0, 50, 0.95)",
-          "rgba(0, 255, 255, 0.2)",
+          "rgba(0, 10, 20, 0.95)", // deep midnight blue
+          "rgba(58, 12, 163, 0.9)", // neon violet
+          "rgba(0, 255, 255, 0.4)", // bright cyan glow
         ]}
         style={styles.overlay}
       >
@@ -134,8 +162,20 @@ export default function LandingScreen() {
             </MotiView>
           </View>
 
+          {/* Loading */}
+          {loading && (
+            <View style={{ marginTop: 40 }}>
+              <LottieView
+                source={loadingAnimation}
+                autoPlay
+                loop
+                style={{ width: 140, height: 140 }}
+              />
+            </View>
+          )}
+
           {/* Dropdown User Picker */}
-          {role && (
+          {!loading && role && (
             <View style={{ width: "100%", marginTop: 16 }}>
               <TouchableOpacity
                 style={styles.dropdownSelector}
@@ -151,8 +191,10 @@ export default function LandingScreen() {
               {showDropdown && (
                 <View style={styles.dropdownList}>
                   <FlatList
-                    data={role === "student" ? mockStudents : mockTeachers}
-                    keyExtractor={(item) => item.id.toString()}
+                    data={role === "student" ? students : teachers}
+                    keyExtractor={(item, index) =>
+                      item?.id?.toString() ?? index.toString()
+                    }
                     renderItem={renderUserItem}
                     style={{ maxHeight: 200 }}
                     showsVerticalScrollIndicator={false}
@@ -170,7 +212,7 @@ export default function LandingScreen() {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    width,
+    width: "100%",
     height,
   },
   overlay: {

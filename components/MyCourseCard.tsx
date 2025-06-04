@@ -19,7 +19,6 @@ interface MyCourseCardProps {
   endDate: string;
   createdAt: string;
   instructor: string;
-  students: number;
 }
 
 const MyCourseCard: React.FC<MyCourseCardProps> = ({
@@ -66,7 +65,7 @@ const MyCourseCard: React.FC<MyCourseCardProps> = ({
               />
             ))}
           </View>
-          <Text style={[{ color: textColor }, styles.price]}>{cost}</Text>
+          <Text style={[{ color: textColor }, styles.price]}>${cost}</Text>
         </View>
       </View>
       <FontAwesome

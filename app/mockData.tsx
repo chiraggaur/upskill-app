@@ -9,6 +9,7 @@ export type Student = {
   name: string;
   email: string;
   assignedTeacherId: number;
+  coursesEnrolled: number[];
 };
 
 export type Course = {
@@ -41,30 +42,35 @@ export const mockStudents: Student[] = [
     name: "Alice Johnson",
     assignedTeacherId: 1,
     email: "alice.johnson@example.com",
+    coursesEnrolled: [201, 204],
   },
   {
     id: 102,
     name: "Bob Martinez",
     assignedTeacherId: 2,
     email: "bob.martinez@example.com",
+    coursesEnrolled: [202],
   },
   {
     id: 103,
     name: "Charlie Kim",
     assignedTeacherId: 1,
     email: "charlie.kim@example.com",
+    coursesEnrolled: [201],
   },
   {
     id: 104,
     name: "Daisy Chen",
     assignedTeacherId: 3,
     email: "daisy.chen@example.com",
+    coursesEnrolled: [201, 204, 215],
   },
   {
     id: 105,
     name: "Ethan Patel",
     assignedTeacherId: 2,
     email: "ethan.patel@example.com",
+    coursesEnrolled: [201, 204],
   },
 ];
 
