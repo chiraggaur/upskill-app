@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,10 +12,15 @@ import {
   MaterialIcons,
   FontAwesome5,
 } from "@expo/vector-icons";
-import { useThemeContext } from "../context/themeContext";
 import { Searchbar } from "react-native-paper";
+import { useThemeContext } from "../context/themeContext";
+import debounce from "lodash.debounce";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import CourseCard from "@/components/CourseCard";
+import { Course } from "../mockData";
 
-const filters = [
+const dummySuggestions = [
   "Adobe Photoshop",
   "Coding",
   "Social Media",
@@ -53,44 +58,127 @@ const getIconComponent = (lib: string) => {
 
 export default function Search() {
   const { isDark } = useThemeContext();
+  const styles = getStyles(isDark);
+
   const [searchQuery, setSearchQuery] = useState("");
-  const themedStyles = getStyles(isDark);
+  const [suggestions, setSuggestions] = useState<Course[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [user, setUser] = useState({ role: "student" });
+  const [showDummy, setShowDummy] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const json = await AsyncStorage.getItem("loggedInUser");
+      if (json) {
+        setUser(JSON.parse(json));
+      }
+    };
+    getUser();
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setSuggestions([]);
+      setShowDummy(true);
+      setSelectedCourse(null);
+      setNotFound(false);
+    }
+  }, [searchQuery]);
+
+  const fetchCourses = async (query: string) => {
+    if (!query) return;
+    try {
+      const response = await axios.get(
+        "https://f485c52e-af5f-460e-b2c8-c6a9589aad03.mock.pstmn.io//courses"
+      );
+      const filtered = response.data.filter((course: Course) =>
+        course.title.toLowerCase().includes(query.toLowerCase())
+      );
+      setSuggestions(filtered);
+      setNotFound(filtered.length === 0);
+    } catch (err) {
+      console.error("Course fetch error", err);
+      setNotFound(true);
+    }
+  };
+
+  const debouncedFetch = useCallback(debounce(fetchCourses, 200), []);
+
+  const onChangeSearch = (query: string) => {
+    setSearchQuery(query);
+    setSelectedCourse(null);
+    setShowDummy(false);
+    debouncedFetch(query);
+  };
 
   return (
-    <ScrollView
-      style={themedStyles.container}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Search Input */}
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Search Bar */}
       <Searchbar
         placeholder="Search Courses"
-        style={themedStyles.input}
-        onChangeText={setSearchQuery}
+        style={styles.input}
+        onChangeText={onChangeSearch}
         value={searchQuery}
       />
 
-      {/* Filter Chips */}
-      <View style={themedStyles.chipsContainer}>
-        {filters.map((tag, index) => (
-          <TouchableOpacity key={index} style={themedStyles.chip}>
-            <Text style={themedStyles.chipText}>{tag}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* Chips or Suggestions */}
+      {showDummy ? (
+        <View style={styles.chipsContainer}>
+          {dummySuggestions.map((tag, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.chip}
+              onPress={() => {
+                setSearchQuery(tag);
+                setShowDummy(false);
+                debouncedFetch(tag);
+              }}
+            >
+              <Text style={styles.chipText}>{tag}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      ) : suggestions.length > 0 ? (
+        <View style={{ marginBottom: 20 }}>
+          <Text style={styles.sectionTitle}>Suggestions</Text>
+          {suggestions.map((course) => (
+            <TouchableOpacity
+              key={course.id}
+              onPress={() => {
+                setSelectedCourse(course);
+                setSuggestions([]);
+                setSearchQuery(course.title);
+                setNotFound(false);
+              }}
+              style={styles.chip}
+            >
+              <Text style={styles.chipText}>{course.title}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      ) : notFound ? (
+        <Text style={{ color: isDark ? "#ccc" : "#444", marginBottom: 20 }}>
+          No such courses yet.
+        </Text>
+      ) : null}
+
+      {/* Selected course display */}
+      {selectedCourse && <CourseCard course={selectedCourse} user={user} />}
 
       {/* Categories */}
-      <Text style={themedStyles.sectionTitle}>All Categories</Text>
+      <Text style={styles.sectionTitle}>All Categories</Text>
       {categories.map((category, index) => {
         const Icon = getIconComponent(category.lib);
         return (
-          <TouchableOpacity key={index} style={themedStyles.categoryItem}>
+          <TouchableOpacity key={index} style={styles.categoryItem}>
             <Icon
               name={category.icon}
               size={26}
               color={isDark ? "#fff" : "#333"}
               style={{ marginRight: 14 }}
             />
-            <Text style={themedStyles.categoryText}>{category.name}</Text>
+            <Text style={styles.categoryText}>{category.name}</Text>
             <Ionicons
               name="chevron-forward"
               size={20}
@@ -110,21 +198,10 @@ const getStyles = (isDark: boolean) =>
       backgroundColor: isDark ? "#121212" : "#fff",
       padding: 16,
     },
-    searchContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: isDark ? "#1e1e1e" : "#f0f0f0",
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      borderRadius: 8,
-      marginTop: 20,
-      marginBottom: 16,
-    },
     input: {
       marginBottom: 15,
       marginTop: 30,
       flex: 1,
-      color: isDark ? "#fff" : "#000",
       fontSize: 16,
     },
     chipsContainer: {
@@ -138,6 +215,8 @@ const getStyles = (isDark: boolean) =>
       paddingHorizontal: 12,
       paddingVertical: 8,
       borderRadius: 20,
+      marginRight: 8,
+      marginBottom: 8,
     },
     chipText: {
       color: isDark ? "#fff" : "#333",

@@ -101,14 +101,6 @@ const CourseCard = ({ course, user }: CourseCardProps) => {
           )}
 
           {user.role === "instructor" && (
-            // <Button
-            //   mode="outlined"
-            //   onPress={() => router.push(`/(instructorTabs)/cours`)}
-            //   style={styles.editButton}
-            //   labelStyle={{ color: "#2563eb" }}
-            // >
-            //   Edit
-            // </Button>
             <Button
               mode="outlined"
               onPress={() =>
