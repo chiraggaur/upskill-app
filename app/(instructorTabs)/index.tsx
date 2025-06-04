@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View, Text } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CourseCard from "@/components/CourseCard";
 import { useThemeContext } from "../context/themeContext";
-import { Courses } from "../mockData"; // <-- your array of 15 courses
+import { Courses } from "../mockData";
 
 type LoggedInUser = {
   id: number;
@@ -22,7 +22,6 @@ const CourseListScreen = () => {
       try {
         const json = await AsyncStorage.getItem("loggedInUser");
         if (!json) {
-          // no user logged in— you can redirect or just leave empty
           return;
         }
         const parsed: LoggedInUser = JSON.parse(json);
