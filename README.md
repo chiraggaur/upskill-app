@@ -1,50 +1,108 @@
-# Welcome to your Expo app 👋
+# Educational App (Upskill)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A modern educational platform built with Expo that connects students and instructors. The app features course management, search functionality, and a beautiful user interface with dark/light theme support.
 
-## Get started
+## Features
 
-1. Install dependencies
+- 🎓 Student and Instructor roles
+- 🔍 Advanced course search functionality
+- 🌓 Dark/Light theme support
+- 📱 Cross-platform (iOS & Android)
+- 🎨 Modern and intuitive UI
+- 🔐 Secure authentication
+- 📚 Course management system
 
-   ```bash
-   npm install
-   ```
+## Prerequisites
 
-2. Start the app
+Before you begin, ensure you have the following installed:
 
-   ```bash
-   npx expo start
-   ```
+- Node.js (v14 or higher)
+- npm or yarn
+- Expo CLI
+- iOS Simulator (for Mac users) or Android Studio (for Android development)
 
-In the output, you'll find options to open the app in a
+## Installation
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+1. Clone the repository:
 
 ```bash
-npm run reset-project
+git clone <your-repository-url>
+cd upskill-app
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Install dependencies:
 
-## Learn more
+```bash
+npm install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+3. Start the development server:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npx expo start
+```
 
-## Join the community
+## Running the App
 
-Join our community of developers creating universal apps.
+After starting the development server, you can run the app using:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Press `i` to open in iOS simulator
+- Press `a` to open in Android emulator
+- Scan the QR code with Expo Go app on your physical device
+
+## Project Structure
+
+```
+upskill-app/
+├── app/                    # Main application code
+│   ├── (tabs)/            # Tab-based navigation screens
+│   ├── context/           # Context providers (theme, etc.)
+│   ├── screens/           # Additional screens
+│   └── types/             # TypeScript type definitions
+├── assets/                # Static assets (images, animations)
+└── components/            # Reusable components
+```
+
+## Environment Setup
+
+1. Create a `.env` file in the root directory
+2. Add necessary environment variables:
+
+```
+API_URL=your_api_url
+```
+
+## Available Scripts
+
+- `npx expo start` - Start the development server
+- `npx expo start --ios` - Start the iOS simulator
+- `npx expo start --android` - Start the Android emulator
+- `npx expo start --web` - Start the web version
+
+## Dependencies
+
+Key dependencies used in this project:
+
+- expo
+- react-native
+- @react-navigation/native
+- react-native-paper
+- axios
+- @react-native-async-storage/async-storage
+- lottie-react-native
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For support, email [your-email] or open an issue in the repository.
