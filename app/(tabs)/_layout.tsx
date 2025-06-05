@@ -6,28 +6,9 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const [role, setRole] = useState<string | null>(null);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const fullUser = await AsyncStorage.getItem("loggedInUser");
-        if (fullUser) {
-          const parsedUser = JSON.parse(fullUser);
-          setRole(parsedUser.role); // <-- Set the role in state
-        }
-      } catch (error) {
-        console.error("Error retrieving user from storage:", error);
-      }
-    };
-
-    checkUser();
-  }, []);
-
   return (
     <Tabs
       screenOptions={{

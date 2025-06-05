@@ -5,33 +5,57 @@ import { useThemeContext } from "./context/themeContext";
 import Toast from "react-native-toast-message";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
+import { View } from "react-native";
+import LottieView from "lottie-react-native";
+import loadingAnimation from "../assets/animations/loading.json";
 
 export default function AppWithTheme() {
   const { theme, isDark } = useThemeContext();
-  const [role, setRole] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [initialRoute, setInitialRoute] = useState<string | null>(null);
 
   useEffect(() => {
     const checkUser = async () => {
       try {
         const fullUser = await AsyncStorage.getItem("loggedInUser");
+
         if (fullUser) {
           const parsedUser = JSON.parse(fullUser);
-          setRole(parsedUser.role);
+
+          if (parsedUser.role === "instructor") {
+            setInitialRoute("(instructorTabs)");
+          } else {
+            setInitialRoute("(tabs)");
+          }
+        } else {
+          setInitialRoute("landingPage");
         }
       } catch (error) {
         console.error("Error retrieving user from storage:", error);
-      } finally {
-        setIsLoading(false);
+        setInitialRoute("landingPage");
       }
     };
 
     checkUser();
   }, []);
 
+  if (!initialRoute) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <View style={{ marginTop: 40 }}>
+          <LottieView
+            source={loadingAnimation}
+            autoPlay
+            loop
+            style={{ width: 140, height: 140 }}
+          />
+        </View>
+      </View>
+    );
+  }
+
   return (
     <NavigationThemeProvider value={theme}>
-      <Stack>
+      <Stack initialRouteName={initialRoute}>
         <Stack.Screen name="landingPage" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
