@@ -3,7 +3,7 @@ import { View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import LottieView from "lottie-react-native";
-import loadingAnimation from "../../assets/animations/loading.json";
+import loadingAnimation from "../assets/animations/loading.json";
 
 export default function Init() {
   useEffect(() => {
