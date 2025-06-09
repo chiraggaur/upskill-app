@@ -22,5 +22,3 @@ export const ThemeProviderCustom = ({ children }: any) => {
 };
 
 export const useThemeContext = () => useContext(ThemeContext);
-
-export default useThemeContext;

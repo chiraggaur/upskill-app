@@ -10,8 +10,6 @@ export default function Init() {
     const checkUser = async () => {
       try {
         const fullUser = await AsyncStorage.getItem("loggedInUser");
-        console.log("✅ Stored user:", fullUser);
-
         if (fullUser) {
           const parsedUser = JSON.parse(fullUser);
           if (parsedUser?.role === "instructor") {

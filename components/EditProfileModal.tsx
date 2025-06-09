@@ -1,4 +1,3 @@
-// components/EditProfileModal.tsx
 import React, { useState } from "react";
 import { Modal, View, StyleSheet, TextInput } from "react-native";
 import { Text, Button, useTheme } from "react-native-paper";

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { Card, Button, Text } from "react-native-paper";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useThemeContext } from "../app/context/themeContext";
